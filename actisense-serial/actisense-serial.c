@@ -52,6 +52,7 @@ static unsigned char NGT_STARTUP_SEQ[] = {
 #define BUFFER_SIZE 900
 
 static int  verbose        = 0;
+static bool noEscape       = false;
 static int  readonly       = 0;
 static int  writeonly      = 0;
 static int  passthru       = 0;
@@ -113,6 +114,11 @@ int main(int argc, char **argv)
     else if (strcasecmp(argv[1], "-v") == 0)
     {
       verbose = 1;
+    }
+    else if (strcasecmp(argv[1], "-y") == 0)
+    {
+      noEscape = true;
+      readonly = 1;
     }
     else if (strcasecmp(argv[1], "-t") == 0 && argc > 2)
     {
@@ -180,13 +186,14 @@ int main(int argc, char **argv)
   if (!device)
   {
     fprintf(stderr,
-            "Usage: %s [-w] -[-p] [-r] [-v] [-d] [-s <n>] [-t <n>] device\n"
+            "Usage: %s [-w] -[-p] [-r] [-v] [-y] [-d] [-s <n>] [-t <n>] device\n"
             "\n"
             "Options:\n"
             "  -w      writeonly mode, no data is read from device\n"
             "  -r      readonly mode, no data is sent to device\n"
             "  -p      passthru mode, data on stdin is sent to stdout but not to device\n"
             "  -v      verbose\n"
+	    "  -y      YDNU-02 File mode, sets readonly and treats ESC char as normal char\n"
             "  -d      debug\n"
             "  -s <n>  set baudrate to 38400, 57600, 115200, 230400"
 #ifdef B460800
@@ -533,7 +540,6 @@ static bool getInMsg(unsigned char *msg, size_t msgLen)
 static bool readNGT1Byte(unsigned char c)
 {
   static enum MSG_State state    = MSG_START;
-  static bool           noEscape = false;
   static unsigned char  buf[500];
   static unsigned char *head = buf;
 
